@@ -1,0 +1,21 @@
+{
+  "deployment": {
+    "name": "voice",
+    "stack": "python39",
+    "type": "advancedio",
+    "env_variables": {
+      "APP_ENV": "production",
+      "LOG_LEVEL": "INFO",
+      "VOBIZ_AUTH_ID": "${VOBIZ_AUTH_ID}",
+      "VOBIZ_AUTH_TOKEN": "${VOBIZ_AUTH_TOKEN}",
+      "VOBIZ_WEBHOOK_SECRET": "${VOBIZ_WEBHOOK_SECRET}",
+      "VOBIZ_PHONE_NUMBER": "${VOBIZ_PHONE_NUMBER}",
+      "SARVAM_API_KEY": "${SARVAM_API_KEY}",
+      "SARVAM_STT_MODEL": "saaras:v3",
+      "SARVAM_TTS_MODEL": "bulbul:v3"
+    }
+  },
+  "execution": {
+    "main": "main.py"
+  }
+}

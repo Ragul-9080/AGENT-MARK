@@ -1,0 +1,214 @@
+name: agentic-marketing
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ama
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ama"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    build:
+      context: ./apps/api
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/ama
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-local-development-only-change-me}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ./apps/api
+    command:
+      ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/ama
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-local-development-only-change-me}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8000}
+      DASHBOARD_ORIGIN: ${DASHBOARD_ORIGIN:-http://localhost:3000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      AUTH_RATE_LIMIT_PER_MINUTE: ${AUTH_RATE_LIMIT_PER_MINUTE:-20}
+      CONTACT_IMPORT_MAX_ROWS: ${CONTACT_IMPORT_MAX_ROWS:-5000}
+      DEFAULT_CALLING_WINDOW: ${DEFAULT_CALLING_WINDOW:-09:00-21:00}
+      LLM_PROVIDER: ${LLM_PROVIDER:-console}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-}
+      AWS_REGION: ${AWS_REGION:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      SES_CONFIGURATION_SET: ${SES_CONFIGURATION_SET:-}
+      SARVAM_API_KEY: ${SARVAM_API_KEY:-}
+      VOBIZ_AUTH_ID: ${VOBIZ_AUTH_ID:-}
+      VOBIZ_AUTH_TOKEN: ${VOBIZ_AUTH_TOKEN:-}
+      VOBIZ_WEBHOOK_SECRET: ${VOBIZ_WEBHOOK_SECRET:-}
+      VOBIZ_PHONE_NUMBER: ${VOBIZ_PHONE_NUMBER:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  worker:
+    build:
+      context: ./apps/api
+    command:
+      [
+        "celery",
+        "-A",
+        "app.workers.celery_app.celery_app",
+        "worker",
+        "--loglevel=INFO",
+        "-Q",
+        "default,voice,seo,email",
+        "--concurrency=2",
+      ]
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/ama
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-local-development-only-change-me}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8000}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-}
+      AWS_REGION: ${AWS_REGION:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      SES_CONFIGURATION_SET: ${SES_CONFIGURATION_SET:-}
+      SARVAM_API_KEY: ${SARVAM_API_KEY:-}
+      VOBIZ_AUTH_ID: ${VOBIZ_AUTH_ID:-}
+      VOBIZ_AUTH_TOKEN: ${VOBIZ_AUTH_TOKEN:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-console}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  beat:
+    build:
+      context: ./apps/api
+    command:
+      [
+        "celery",
+        "-A",
+        "app.workers.celery_app.celery_app",
+        "beat",
+        "--loglevel=INFO",
+        "-s",
+        "/tmp/celerybeat-schedule",
+      ]
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/ama
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-local-development-only-change-me}
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  voice:
+    build:
+      context: ./apps/voice
+    ports:
+      - "8001:8001"
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      API_BASE_URL: http://api:8000
+      SARVAM_API_KEY: ${SARVAM_API_KEY:-}
+      VOBIZ_AUTH_ID: ${VOBIZ_AUTH_ID:-}
+      VOBIZ_AUTH_TOKEN: ${VOBIZ_AUTH_TOKEN:-}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      API_INTERNAL_URL: http://api:8000
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:

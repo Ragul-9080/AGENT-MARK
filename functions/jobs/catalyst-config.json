@@ -1,0 +1,17 @@
+{
+  "deployment": {
+    "name": "jobs",
+    "stack": "python39",
+    "type": "advancedio",
+    "env_variables": {
+      "APP_ENV": "production",
+      "LOG_LEVEL": "INFO",
+      "JWT_SECRET": "${JWT_SECRET}",
+      "DATABASE_URL": "${DATABASE_URL}",
+      "REDIS_URL": "${REDIS_URL}"
+    }
+  },
+  "execution": {
+    "main": "main.py"
+  }
+}

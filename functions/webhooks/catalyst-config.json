@@ -1,0 +1,18 @@
+{
+  "deployment": {
+    "name": "webhooks",
+    "stack": "python39",
+    "type": "advancedio",
+    "env_variables": {
+      "APP_ENV": "production",
+      "LOG_LEVEL": "INFO",
+      "JWT_SECRET": "${JWT_SECRET}",
+      "DATABASE_URL": "${DATABASE_URL}",
+      "VOBIZ_WEBHOOK_SECRET": "${VOBIZ_WEBHOOK_SECRET}",
+      "EMAIL_WEBHOOK_SECRET": "${EMAIL_WEBHOOK_SECRET}"
+    }
+  },
+  "execution": {
+    "main": "main.py"
+  }
+}

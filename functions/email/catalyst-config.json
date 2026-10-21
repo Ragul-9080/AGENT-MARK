@@ -1,0 +1,24 @@
+{
+  "deployment": {
+    "name": "email",
+    "stack": "python39",
+    "type": "advancedio",
+    "env_variables": {
+      "APP_ENV": "production",
+      "LOG_LEVEL": "INFO",
+      "JWT_SECRET": "${JWT_SECRET}",
+      "DATABASE_URL": "${DATABASE_URL}",
+      "EMAIL_PROVIDER": "${EMAIL_PROVIDER}",
+      "EMAIL_FROM_NAME": "${EMAIL_FROM_NAME}",
+      "EMAIL_FROM_ADDRESS": "${EMAIL_FROM_ADDRESS}",
+      "EMAIL_WEBHOOK_SECRET": "${EMAIL_WEBHOOK_SECRET}",
+      "AWS_REGION": "${AWS_REGION}",
+      "AWS_ACCESS_KEY_ID": "${AWS_ACCESS_KEY_ID}",
+      "AWS_SECRET_ACCESS_KEY": "${AWS_SECRET_ACCESS_KEY}",
+      "SES_CONFIGURATION_SET": "${SES_CONFIGURATION_SET}"
+    }
+  },
+  "execution": {
+    "main": "main.py"
+  }
+}

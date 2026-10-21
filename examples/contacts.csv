@@ -1,0 +1,11 @@
+name,phone,email,language,tags,source
+Ananya Sharma,+919876543210,ananya.sharma@example.com,en,"renewal, high-intent",website_form
+Rohit Verma,9876543211,rohit.verma@example.com,hi,"renewal",webinar
+Priya Nair,09876543212,priya.nair@example.com,ta,"trial, smb",referral
+Vikram Singh,+919876543213,vikram.singh@example.com,hi,"renewal, enterprise",website_form
+Meera Iyer,+919876543214,meera.iyer@example.com,en,"onboarding",partner
+Arjun Das,+919876543215,arjun.das@example.com,bn,,csv_import
+Sneha Kulkarni,+919876543216,sneha.kulkarni@example.com,mr,"renewal",website_form
+Imran Khan,+919876543217,imran.khan@example.com,hi,"enterprise, high-intent",event
+Rohit Verma,9876543211,rohit.verma@example.com,hi,renewal,webinar
+Kavya Rao,not-a-phone,kavya.rao@example.com,te,trial,website_form

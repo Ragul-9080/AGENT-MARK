@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agentic Marketing Platform</title>
+    <script>
+      // SPA fallback: redirect to the Next.js app root so client-side routing works.
+      // Catalyst client hosting serves static files; this ensures deep links resolve.
+      (function () {
+        var path = window.location.pathname;
+        if (path === "/index.html" || path === "/") {
+          window.location.replace("/index.html");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="__next">
+      <noscript>
+        <p>Please enable JavaScript to use the Agentic Marketing Platform dashboard.</p>
+      </noscript>
+    </div>
+  </body>
+</html>

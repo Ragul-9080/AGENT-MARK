@@ -1,0 +1,16 @@
+{
+  "name": "agentic-marketing",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/web",
+    "packages/shared-types"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @ama/web",
+    "dev:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/local-dev.ps1",
+    "build": "npm run build --workspace @ama/web",
+    "lint": "npm run lint --workspace @ama/web",
+    "typecheck": "npm run typecheck --workspace @ama/web"
+  }
+}
